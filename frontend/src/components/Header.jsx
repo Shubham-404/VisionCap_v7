@@ -4,8 +4,8 @@ import { useAuth } from '../contexts/AuthContext'; // Adjust path if needed
 import { Link } from "react-router-dom";
 
 const Header = () => {
-  const { currentUser, logout } = useAuth();
   const [showUserDetails, setShowUserDetails] = useState(false);
+  const { currentUser, logout } = useAuth();
 
   const handleLogout = async () => {
     try {

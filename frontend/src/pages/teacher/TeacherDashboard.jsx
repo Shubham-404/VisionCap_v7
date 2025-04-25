@@ -1,4 +1,76 @@
-const AdminDashboard = () => {
+import { useEffect, useState } from "react";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import { db } from "../../firebase/config";
+import { useAuth } from "../../contexts/AuthContext";
+
+
+const TeacherDashboard = () => {
+  const { currentUser } = useAuth();
+  const [attendanceLogs, setAttendanceLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      if (!currentUser) return;
+
+      try {
+        // Fetch user data to check role
+        const userQuery = query(
+          collection(db, 'users'),
+          where('uid', '==', currentUser.uid)
+        );
+        const userSnap = await getDocs(userQuery);
+
+        if (userSnap.empty) {
+          console.error('User not found.');
+          return;
+        }
+
+        const userData = userSnap.docs[0].data();
+        if (userData.role !== 'teacher') {
+          console.error('Access denied. Not a teacher.');
+          return;
+        }
+
+        // Fetch attendance logs
+        const attendanceSnapshot = await getDocs(collection(db, 'attendance-logs'));
+        const logs = [];
+
+        attendanceSnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.students && Array.isArray(data.students)) {
+            data.students.forEach((student) => {
+              logs.push({
+                date: data.date,
+                studentName: student.name,
+                present: student.present,
+                engagement: student.concentrationScore || '-',
+              });
+            });
+          }
+        });
+
+        setAttendanceLogs(logs);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
+  }, [currentUser]);
+
+  if (loading) {
+    return (
+      <section className="flex justify-center items-center min-h-screen">
+        <div className="text-xl font-semibold text-gray-600 animate-pulse">
+          Loading dashboard...
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="container mx-auto px-4 py-6">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Teacher Dashboard</h2>
@@ -33,19 +105,27 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b">
-                <td className="px-4 py-2">2025-04-23</td>
-                <td className="px-4 py-2">Aarav Mehta</td>
-                <td className="px-4 py-2 text-green-600 font-semibold">Present</td>
-                <td className="px-4 py-2">88%</td>
-              </tr>
-              <tr className="border-b">
-                <td className="px-4 py-2">2025-04-23</td>
-                <td className="px-4 py-2">Diya Sharma</td>
-                <td className="px-4 py-2 text-red-500 font-semibold">Absent</td>
-                <td className="px-4 py-2">-</td>
-              </tr>
-              {/* More rows here... */}
+              {attendanceLogs.length > 0 ? (
+                attendanceLogs.map((log, index) => (
+                  <tr key={index} className="border-b">
+                    <td className="px-4 py-2">{log.date}</td>
+                    <td className="px-4 py-2">{log.studentName}</td>
+                    <td
+                      className={`px-4 py-2 font-semibold ${log.present === 'true' ? 'text-green-600' : 'text-red-500'
+                        }`}
+                    >
+                      {log.present === 'true' ? 'Present' : 'Absent'}
+                    </td>
+                    <td className="px-4 py-2">{log.engagement}%</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="px-4 py-6 text-center text-gray-500">
+                    No attendance records found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -54,4 +134,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default TeacherDashboard;
