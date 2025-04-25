@@ -1,0 +1,94 @@
+import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+
+const Login = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const { login, signInWithGoogle } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            setError('');
+            setLoading(true);
+            await login(email, password);
+            navigate('/');
+        } catch (error) {
+            setError('Failed to sign in: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSignIn = async () => {
+        try {
+            setError('');
+            setLoading(true);
+            await signInWithGoogle();
+            navigate('/');
+        } catch (error) {
+            setError('Google sign-in failed: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <section className="min-h-[80vh] h-full flex items-center justify-center bg-gradient-to-br from-white to-blue-500 bg-no-repeat bg-bottom bg-cover">
+            <div className="bg-white/90 backdrop-blur-xs w-full max-w-md p-8 rounded-xl shadow-lg">
+                <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">Sign In</h2>
+
+                {error && (
+                    <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                        <input
+                            type="email"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-blue-400"
+                            placeholder="Email/USN"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <input
+                            type="password"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-blue-400"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                        {loading ? 'Logging in...' : 'Login'}
+                    </button>
+                </form>
+
+                <p className="text-sm text-center mt-6">
+                    Not Registered?{' '}
+                    <Link to="/register" className="text-blue-600 hover:underline">
+                        Ask here
+                    </Link>
+                </p>
+            </div>
+        </section>
+    );
+};
+
+export default Login;
