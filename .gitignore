@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────
+# Global ignores
+# ─────────────────────────────────────────
+
+# Python-related
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+env/
+venv/
+venv8/        # In case someone names their venv like you did
+
+# Flask specific
+instance/
+*.log
+
+# Node root
+node_modules/
+.venv/
+
+# VSCode / IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────
+# Frontend (React)
+# ─────────────────────────────────────────
+
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.DS_Store
+
+# Frontend logs
+frontend/logs/
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/lerna-debug.log*
+
+# Frontend environment files
+frontend/*.local
+frontend/.env*
+!frontend/.env.example
+
+# Editor junk
+frontend/.vscode/
+!frontend/.vscode/extensions.json
+frontend/*.suo
+frontend/*.ntvs*
+frontend/*.njsproj
+frontend/*.sln
+frontend/*.sw?
+
+# ─────────────────────────────────────────
+# Backend (Flask)
+# ─────────────────────────────────────────
+
+backend/myenv/
+backend/venv8/
+backend/__pycache__/
+backend/*.pyc
+backend/instance/
+backend/*.log
+backend/videos
+
+
+
+# ─────────────────────────────────────────
+# Firebase & Firestore
+# ─────────────────────────────────────────
+
+frontend/src/auth/firebase.js
+
