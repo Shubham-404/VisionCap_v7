@@ -18,6 +18,10 @@ instance/
 
 # Node root
 node_modules/
+<<<<<<< HEAD
+=======
+.venv/
+>>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
 
 # VSCode / IDE
 .vscode/
@@ -62,12 +66,21 @@ frontend/*.sw?
 # Backend (Flask)
 # ─────────────────────────────────────────
 
+<<<<<<< HEAD
 backend/venv/
+=======
+backend/myenv/
+>>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
 backend/venv8/
 backend/__pycache__/
 backend/*.pyc
 backend/instance/
 backend/*.log
+<<<<<<< HEAD
+=======
+backend/videos
+
+>>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
 
 
 # ─────────────────────────────────────────

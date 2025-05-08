@@ -92,6 +92,7 @@ const StudentDashboard = () => {
             }
           });
 
+<<<<<<< HEAD
           if (latestAttendance) {
             const students = latestAttendance.students;
             for (const id in students) {
@@ -101,6 +102,16 @@ const StudentDashboard = () => {
                 setAttendanceTime(new Date(latestAttendance.timestamp?.seconds * 1000).toLocaleString());
                 break;
               }
+=======
+          if (latestAttendance && Array.isArray(latestAttendance.students)) {
+            const matchedStudent = latestAttendance.students.find(
+              (student) => student.usn === userUsn
+            );
+
+            if (matchedStudent) {
+              setAttendanceStatus(matchedStudent.present === true ? "Present" : "Absent");
+              setAttendanceTime(new Date(latestAttendance.timestamp?.seconds * 1000).toLocaleString());
+>>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
             }
           }
 

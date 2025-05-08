@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+<<<<<<< HEAD
 import { auth } from "../auth/firebase";
+=======
+import { auth } from "../firebase/config";
+>>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
 import { useNavigate, Link } from "react-router-dom";
 
 const Register = () => {
@@ -12,7 +16,11 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
     setError("");
+=======
+    setError(""); 
+>>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
     setLoading(true);
 
     try {
