@@ -1,65 +1,43 @@
-<<<<<<< HEAD
-import { React, useRef, userEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext'; // Adjust path if needed
-
-import { Link } from "react-router-dom";
-=======
 import { useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
 
 const Header = () => {
   const [showUserDetails, setShowUserDetails] = useState(false);
-  const { currentUser, logout } = useAuth();
+  const { currentUser, userProfile, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await logout();
+      navigate('/');
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error('Logout failed:', error);
     }
   };
 
-<<<<<<< HEAD
   const toggleUserInfo = () => {
-    setShowUserDetails(prev => !prev);
-  }
-
-  return (
-    <header className="bg-white shadow-md">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold text-blue-600">
-          Vision Caputure
-        </Link>
-        <nav className="hidden md:flex space-x-6 items-center">
-          <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium">
-            Dashboard
-          </Link>
-          
-          {!currentUser ? (
-            <div className='flex gap-10'>
-              <Link to="/login" className="!text-white text-lg p-3 py-1 rounded-xl bg-[#398ae6] hover:bg-[#5788af]">Login</Link>
-            </div>
-          ) : (
-            <div className='flex items-center gap-5 text-white'>
-              {/* for identifing student and organizer */}
-              <Link to="/profile"
-                onClick={toggleUserInfo}
-                className="cursor-pointer text-lg text-black hover:text-[#E63946] transition"
-              >
-                {showUserDetails
-                  ? <>
-
-                    {currentUser.displayName || currentUser.name} {currentUser.email}
-                  </>
-                  : `${currentUser.displayName || currentUser.email}`.toUpperCase().slice(0, 7) + "..."}
-              </Link>
-
-              <button onClick={handleLogout} className="text-white text-lg p-3 py-1 rounded-sm bg-[#E63946] hover:bg-[#F63956]">Logout</button>
-            </div>
-=======
-  const toggleUserInfo = () => setShowUserDetails(prev => !prev);
+    setShowUserDetails((prev) => !prev);
+    if (userProfile && userProfile.role) {
+      switch (userProfile.role.toLowerCase()) {
+        case 'student':
+          navigate('/profile');
+          break;
+        case 'teacher':
+          navigate('/teacher/dashboard');
+          break;
+        case 'organization':
+          navigate('/admin/dashboard');
+          break;
+        default:
+          console.warn('Unknown role:', userProfile.role);
+          navigate('/onboarding');
+      }
+    } else {
+      console.warn('No userProfile or role found');
+      navigate('/onboarding');
+    }
+  };
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -69,7 +47,7 @@ const Header = () => {
         </Link>
         <nav className="flex gap-6 items-center text-sm font-medium text-gray-700">
           <Link to="/" className="hover:text-indigo-600">Home</Link>
-          <Link to="/features" className="hover:text-indigo-600">Features</Link>
+          <Link to="/services" className="hover:text-indigo-600">Services</Link>
           <Link to="/about" className="hover:text-indigo-600">About</Link>
           <Link to="/contact" className="hover:text-indigo-600">Contact</Link>
           {currentUser ? (
@@ -93,7 +71,6 @@ const Header = () => {
             >
               Login
             </Link>
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
           )}
         </nav>
       </div>

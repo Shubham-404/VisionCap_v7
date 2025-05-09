@@ -1,280 +1,131 @@
-import { useEffect, useState } from "react";
-<<<<<<< HEAD
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../firebase/config";
-import { useAuth } from "../../contexts/AuthContext";
-
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
 const TeacherDashboard = () => {
-  const { currentUser } = useAuth();
-  const [attendanceLogs, setAttendanceLogs] = useState([]);
+  const { userProfile } = useAuth();
+  const navigate = useNavigate();
+  const [activeServices, setActiveServices] = useState([]);
+  const [semester, setSemester] = useState('');
+  const [room, setRoom] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const modules = [
+    { title: 'Attendance Tracking', description: 'Monitor attendance using AI-powered face recognition.' },
+    { title: 'Face Recognition', description: 'Identify individuals in video feeds for security and analytics.' },
+    { title: 'Behavior Analysis', description: 'Analyze behavior patterns in classrooms or offices.' },
+    { title: 'Faculty Insights', description: 'Generate detailed reports for teachers and faculty.' },
+    { title: 'Student Insights', description: 'Provide personalized insights for student engagement.' },
+    { title: 'Heatmaps', description: 'Visualize organization-wide usage and activity patterns.' },
+  ];
 
   useEffect(() => {
-    const fetchLogs = async () => {
-      if (!currentUser) return;
-
-      try {
-        // Fetch user data to check role
-        const userQuery = query(
-          collection(db, 'users'),
-          where('uid', '==', currentUser.uid)
-        );
-        const userSnap = await getDocs(userQuery);
-
-        if (userSnap.empty) {
-          console.error('User not found.');
-          return;
-        }
-
-        const userData = userSnap.docs[0].data();
-        if (userData.role !== 'teacher') {
-          console.error('Access denied. Not a teacher.');
-          return;
-        }
-
-        // Fetch attendance logs
-        const attendanceSnapshot = await getDocs(collection(db, 'attendance-logs'));
-        const logs = [];
-
-        attendanceSnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data.students && Array.isArray(data.students)) {
-            data.students.forEach((student) => {
-              logs.push({
-                date: data.date,
-                studentName: student.name,
-                present: student.present,
-                engagement: student.concentrationScore || '-',
-              });
-            });
+    const fetchServices = async () => {
+      if (userProfile && userProfile.orgIds?.[0]) {
+        try {
+          const orgDoc = await getDoc(doc(db, 'organizations', userProfile.orgIds[0]));
+          if (orgDoc.exists()) {
+            setActiveServices(orgDoc.data().activeServices || []);
           }
-        });
-
-        setAttendanceLogs(logs);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-=======
-import axios from "axios";
-import Papa from "papaparse";
-
-const TeacherDashboard = () => {
-  const [csvData, setCsvData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const startAnalysis = async () => {
-    try {
-      const res = await axios.post("http://localhost:5000/start-analysis");
-      alert(res.data.message || "Analysis started!");
-    } catch (err) {
-      console.error("Failed to start analysis:", err);
-      alert("Error starting analysis");
-    }
-  };
-
-  const getInsights = async () => {
-    try {
-      const res = await axios.post("http://localhost:5000/get-insights");
-      alert(res.data.message || "Analysis started!");
-    } catch (err) {
-      console.error("Failed to start analysis:", err);
-      alert("Error starting analysis");
-    }
-  };
-
-  const stopAnalysis = async () => {
-    try {
-      const res = await axios.post("http://localhost:5000/stop-analysis");
-      alert(res.data.message || "Analysis stopped!");
-    } catch (err) {
-      console.error("Failed to stop analysis:", err);
-      alert("Error stopping analysis");
-    }
-  };
-  const getReport = async () => {
-    try {
-      const res = await axios.post("http://localhost:5000/get-report");
-      alert(res.data.message || "Generating Report");
-    } catch (err) {
-      console.error("Unable to generate:", err);
-      alert("Not available!");
-    }
-  };
-
-  useEffect(() => {
-    const fetchCsv = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/latest-attendance");
-        if (!response.ok) throw new Error("Failed to fetch CSV");
-        const text = await response.text();
-        const parsed = Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-        });
-        setCsvData(parsed.data);
-      } catch (error) {
-        console.error("Failed to load CSV:", error);
-        setCsvData([]); // Reset data on error
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
-      } finally {
-        setLoading(false);
+        } catch (err) {
+          setError('Failed to load services: ' + err.message);
+        }
       }
+      setLoading(false);
     };
+    fetchServices();
+  }, [userProfile]);
 
-<<<<<<< HEAD
-    fetchLogs();
-  }, [currentUser]);
+  const handleStartClass = () => {
+    if (!semester || !room) {
+      setError('Please enter semester and room number.');
+      return;
+    }
+    alert(`Starting class for Semester ${semester}, Room ${room}`);
+    // Trigger AI analysis here, e.g., send to backend for processing
+  };
 
   if (loading) {
     return (
-      <section className="flex justify-center items-center min-h-screen">
-        <div className="text-xl font-semibold text-gray-600 animate-pulse">
-          Loading dashboard...
+      <section className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-gray-800 px-6 scroll-smooth">
+        <div className="max-w-6xl mx-auto py-12 animate-fadeIn">
+          <p className="text-lg text-gray-600">Loading dashboard...</p>
         </div>
       </section>
-=======
-    fetchCsv();
-  }, []);
-
-  function getRandomNumber(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-xl text-gray-600">
-        Loading...
-      </div>
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
     );
   }
 
   return (
-    <section className="container mx-auto px-4 py-6">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Teacher Dashboard</h2>
-
-<<<<<<< HEAD
-      {/* Class Controls */}
-      <div className="bg-white rounded-xl shadow p-6 mb-6 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-700">Class Controls</h3>
-        <div className="flex gap-4 flex-wrap">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+    <section className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-gray-800 px-6 scroll-smooth">
+      <div className="max-w-6xl mx-auto py-12 animate-fadeIn">
+        <h1 className="text-3xl font-bold mb-4">Faculty Dashboard</h1>
+        <p className="text-lg text-gray-600 mb-8">Start a class and access AI analytics services.</p>
+        {error && (
+          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">{error}</div>
+        )}
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-8">
+          <h2 className="text-xl font-semibold mb-4">Start Class</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Semester</label>
+              <input
+                type="text"
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600"
+                placeholder="e.g., 5"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Room No.</label>
+              <input
+                type="text"
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600"
+                placeholder="e.g., LH-101"
+              />
+            </div>
+          </div>
+          <button
+            onClick={handleStartClass}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition duration-300 hover:scale-105"
+          >
             Start Class
           </button>
-          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-            Start Analysis
-          </button>
-          <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
-            Stop Analysis
-          </button>
         </div>
-      </div>
-
-      {/* Attendance Logs */}
-      <div className="bg-white rounded-xl shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Past Attendance Logs</h3>
-=======
-      {/* Controls */}
-      <div className="bg-white shadow rounded-xl p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">Class Controls</h3>
-        <div className="flex gap-4">
-          <button
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            onClick={startAnalysis}
-          >
-            Start Analysis
-          </button>
-          <button
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
-            onClick={getInsights}
-          >
-            Behavioural Insights
-          </button>
-          <button
-            className="bg-red-400 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-            onClick={stopAnalysis}
-          >
-            Stop Analysis
-          </button>
-          <button
-            className="bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600"
-            onClick={getReport}
-          >
-            Get Report
-          </button>
-        </div>
-      </div>
-
-      {/* Report Table */}
-      <div className="bg-white shadow rounded-xl p-6">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">Latest Session Report</h3>
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm text-left text-gray-600">
-            <thead>
-              <tr className="bg-gray-100 text-gray-700">
-<<<<<<< HEAD
-                <th className="px-4 py-2 font-medium">Date</th>
-                <th className="px-4 py-2 font-medium">Student</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-                <th className="px-4 py-2 font-medium">Engagement</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceLogs.length > 0 ? (
-                attendanceLogs.map((log, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="px-4 py-2">{log.date}</td>
-                    <td className="px-4 py-2">{log.studentName}</td>
-                    <td
-                      className={`px-4 py-2 font-semibold ${log.present === 'true' ? 'text-green-600' : 'text-red-500'
-                        }`}
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <h2 className="text-xl font-semibold mb-4">Available Services</h2>
+          {activeServices.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {modules
+                .filter((module) => activeServices.includes(module.title))
+                .map((module) => (
+                  <div
+                    key={module.title}
+                    className="p-4 bg-gray-50 rounded-lg shadow hover:shadow-md transition duration-300"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-800">{module.title}</h3>
+                    <p className="text-sm text-gray-600">{module.description}</p>
+                    <button
+                      onClick={() => alert(`Running ${module.title} analysis`)}
+                      className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-4 rounded-lg shadow transition duration-300 hover:scale-105"
                     >
-                      {log.present === 'true' ? 'Present' : 'Absent'}
-                    </td>
-                    <td className="px-4 py-2">{log.engagement}%</td>
-=======
-                <th className="px-4 py-2 font-medium">Name</th>
-                <th className="px-4 py-2 font-medium">USN</th>
-                <th className="px-4 py-2 font-medium">Subject</th>
-                <th className="px-4 py-2 font-medium">Engagement (%)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {csvData.length > 0 ? (
-                csvData.map((entry, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="px-4 py-2">{entry.Name || "N/A"}</td>
-                    <td className="px-4 py-2">{entry.Date || "N/A"}</td>
-                    <td className="px-4 py-2">{entry.Time || "N/A"}</td>
-                    <td className="px-4 py-2">{getRandomNumber(50, 95) + "%" || "N/A"}</td>
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
-                  </tr>
-                ))
-              ) : (
-                <tr>
-<<<<<<< HEAD
-                  <td colSpan="4" className="px-4 py-6 text-center text-gray-500">
-                    No attendance records found.
-=======
-                  <td colSpan="4" className="text-center py-6 text-gray-500">
-                    No report available.
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      Run Analysis
+                    </button>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-600">No services enabled by your organization.</p>
+          )}
         </div>
       </div>
     </section>
   );
 };
 
-<<<<<<< HEAD
 export default TeacherDashboard;
-=======
-export default TeacherDashboard;
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad

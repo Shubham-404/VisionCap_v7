@@ -11,13 +11,9 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.4",
-<<<<<<< HEAD
-    "firebase": "^11.6.0",
-=======
     "axios": "^1.9.0",
     "firebase": "^11.6.0",
     "papaparse": "^5.5.2",
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-firebase-hooks": "^5.1.1",

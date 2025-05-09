@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -17,93 +16,105 @@ const Login = () => {
         e.preventDefault();
         setError('');
         setLoading(true);
-
         try {
             const userCredential = await login(email, password);
             const user = userCredential.user;
-
             const docRef = doc(db, 'users', user.uid);
             const docSnap = await getDoc(docRef);
-
             if (docSnap.exists()) {
                 const userData = docSnap.data();
                 const role = userData.role;
-
                 if (!role) {
                     await logout();
                     setError('No role assigned. Please contact the admin.');
                     return;
-                }
 
+                }
                 if (role === 'student') {
-                    navigate('/');
+                    navigate('/dashboard');
+
                 } else if (role === 'teacher') {
                     navigate('/teacher/dashboard');
-                } else if (role === 'organizer') {
-                    navigate('/organizer/dashboard');
+
+                } else if (role === 'organization') {
+                    navigate('/admin/dashboard');
+
                 } else {
                     await logout();
                     setError('Unknown role. Please contact admin.');
+
                 }
             } else {
                 await logout();
                 setError('No user data found in Firestore.');
+
             }
         } catch (error) {
             setError('Failed to sign in: ' + error.message);
+
         } finally {
             setLoading(false);
+
         }
     };
 
     return (
-        <section className="min-h-[80vh] h-full flex items-center justify-center bg-gradient-to-br from-white to-blue-500 bg-no-repeat bg-bottom bg-cover">
-            <div className="bg-white/90 backdrop-blur-xs w-full max-w-md p-8 rounded-xl shadow-lg">
-                <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">Sign In</h2>
-                {error && (
-                    <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
-                        {error}
+        <section className="h-[90vh] bg-gradient-to-b from-slate-400 to-slate-100 text-gray-800 flex flex-col md:flex-row scroll-smooth">
+            <div className="md:w-1/2 relative bg-cover bg-center h-64 md:h-auto" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1629654297299-c8506221ca97?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80)' }}>
+                <div className="absolute inset-0 bg-blue-900/50 flex items-center justify-center">
+                    <div className="text-center text-white px-6">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-fadeIn">Empower Your Space</h2>
+                        <p className="text-lg md:text-xl animate-fadeIn delay-100">AI-powered video analytics for smarter environments.</p>
                     </div>
-                )}
+                </div>
+            </div>
+            <div className="md:w-1/2 flex items-center justify-center p-6 md:p-12">
+                <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg animate-fadeIn">
+                    <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Sign In</h2>
+                    {error && (
+                        <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
+                            {error}
+                        </div>
 
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                        <input
-                            type="email"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-blue-400"
-                            placeholder="Email/USN"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <input
-                            type="password"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-blue-400"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-                    >
-                        {loading ? 'Logging in...' : 'Login'}
-                    </button>
-                </form>
-
-                <p className="text-sm text-center mt-6">
-                    Not Registered?{' '}
-                    <Link to="mailto:organizeremail@org.ac.in" className="text-blue-600 hover:underline">
-                        Ask here
-                    </Link>
-                </p>
+                    )}
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Email/USN</label>
+                            <input
+                                type="email"
+                                className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                placeholder="Email/USN"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                            <input
+                                type="password"
+                                className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow transition duration-300 hover:scale-105"
+                        >
+                            {loading ? 'Logging in...' : 'Sign In'}
+                        </button>
+                    </form>
+                    <p className="text-sm text-center mt-6 text-gray-600">
+                        Not Registered?{' '}
+                        <Link to="/signup" className="text-blue-600 hover:underline">
+                            Sign Up
+                        </Link>
+                    </p>
+                </div>
             </div>
         </section>
     );

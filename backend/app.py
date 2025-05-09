@@ -1,24 +1,12 @@
-<<<<<<< HEAD
-from flask import Flask, jsonify
-from flask_cors import CORS
-=======
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import subprocess
 import os
 import sys
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
 
 app = Flask(__name__)
 CORS(app)
 
-<<<<<<< HEAD
-@app.route("/api/ping")
-def ping():
-    return jsonify({"message": "Flask backend running 🎉"})
-
-if __name__ == "__main__":
-=======
 @app.route('/start-analysis', methods=['POST'])
 def run_start_analysis():
     print("Triggered /start-analysis")
@@ -71,5 +59,4 @@ def stop_analysis_mock():
 
 if __name__ == '__main__':
     print("Flask app starting...")
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
     app.run(debug=True)

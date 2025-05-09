@@ -22,14 +22,12 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
 
-  // Sign up function
   async function signup(email, password) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Create user profile in Firestore
       await createUserProfile(userCredential.user.uid, {
         email: userCredential.user.email,
-        role: 'student', // Default role
+        role: 'student',
         displayName: userCredential.user.displayName || email.split('@')[0],
         photoURL: userCredential.user.photoURL || null,
       });
@@ -39,24 +37,24 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Login function
   function login(email, password) {
     return signInWithEmailAndPassword(auth, email, password);
   }
 
-  // Logout function
   async function logout() {
     setUserProfile(null);
-    return signOut(auth);
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
   }
 
-  // Google Sign in
   async function signInWithGoogle() {
     try {
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
-      
-      // Check if user profile exists, if not create one
       const profile = await getUserProfile(userCredential.user.uid);
       if (!profile) {
         await createUserProfile(userCredential.user.uid, {
@@ -72,16 +70,22 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Reset Password
   function resetPassword(email) {
     return sendPasswordResetEmail(auth, email);
   }
 
-  // Load user profile
   async function loadUserProfile(user) {
     if (user) {
-      const profile = await getUserProfile(user.uid);
-      setUserProfile(profile);
+      try {
+        const profile = await getUserProfile(user.uid);
+        setUserProfile(profile || null);
+        if (!profile) {
+          console.warn(`No user profile found for UID: ${user.uid}`);
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+        setUserProfile(null);
+      }
     } else {
       setUserProfile(null);
     }
@@ -89,12 +93,16 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
       setCurrentUser(user);
       await loadUserProfile(user);
+      if (!user && window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
+        window.location.href = '/login';
+      }
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   const value = {
@@ -112,4 +120,4 @@ export function AuthProvider({ children }) {
       {!loading && children}
     </AuthContext.Provider>
   );
-} 
+}

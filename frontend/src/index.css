@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+*{
+    transition: .3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-sizing: border-box;
+}
+
+html, body{
+height: 100%;
+width: 100%;
+
+}

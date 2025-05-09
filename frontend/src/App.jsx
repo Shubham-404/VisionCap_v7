@@ -1,32 +1,40 @@
-<<<<<<< HEAD
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from './contexts/AuthContext';
-
-import PrivateRoute from "./components/PrivateRoute";
-import Layout from "./components/Layout";
-=======
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect, useState, Component } from 'react';
 
 import { AuthProvider } from './contexts/AuthContext';
-import PrivateRoute from "./components/PrivateRoute";
-import Layout from "./components/Layout";
-import Loader from "./components/Loader";
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
+import PrivateRoute from './components/PrivateRoute';
+import Layout from './components/Layout';
+import Loader from './components/Loader';
 
-import StudentDashboard from "./pages/student/Dashboard";
-import StudentProfile from "./pages/student/Profile";
-import TeacherDashboard from "./pages/teacher/TeacherDashboard";
-import OrgDashboard from "./pages/organization/Dashboard";
-
-import Login from "./pages/Login";
-import Home from "./pages/Home";
-import Register from "./pages/Register";
-<<<<<<< HEAD
-=======
+import StudentDashboard from './pages/student/Dashboard';
+import StudentProfile from './pages/student/Profile';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import AdminDashboard from './pages/organization/Dashboard';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Onboarding from './pages/Onboarding';
 import NotFound from './pages/NotFound';
+import Services from './pages/Services';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 function AppRoutesWithLoader() {
+
+  class ErrorBoundary extends Component {
+    state = { hasError: false };
+    static getDerivedStateFromError() {
+      return { hasError: true };
+    }
+    render() {
+      if (this.state.hasError) {
+        return <h1>Something went wrong. Please try again.</h1>;
+      }
+      return this.props.children;
+    }
+  }
+
+
   const location = useLocation();
   const [loading, setLoading] = useState(false);
 
@@ -34,7 +42,8 @@ function AppRoutesWithLoader() {
     setLoading(true);
     const timeout = setTimeout(() => {
       setLoading(false);
-    }, 500); // 0.5s delay
+
+    }, 500);
 
     return () => clearTimeout(timeout);
   }, [location]);
@@ -45,6 +54,17 @@ function AppRoutesWithLoader() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+
+          <Route path="/services" element={
+            <ErrorBoundary>
+              <Services />
+            </ErrorBoundary>
+          } />
           <Route
             path="/dashboard"
             element={
@@ -70,72 +90,27 @@ function AppRoutesWithLoader() {
             }
           />
           <Route
-            path="/organizer/dashboard"
+            path="/admin/dashboard"
             element={
-              <PrivateRoute allowedRoles={['organizer']}>
-                <OrgDashboard />
+              <PrivateRoute allowedRoles={['organization']}>
+                <AdminDashboard />
               </PrivateRoute>
             }
           />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<NotFound />} /> {/* Catch-all - always last */}
+        
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </>
   );
 }
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
 
 function App() {
   return (
     <main className="h-full">
       <AuthProvider>
         <Router>
-<<<<<<< HEAD
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<Home />} />
-
-              <Route
-                path="/dashboard"
-                element={
-                  <PrivateRoute allowedRoles={['student']}>
-                    <StudentDashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <PrivateRoute allowedRoles={['student']}>
-                    <StudentProfile />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/teacher/dashboard"
-                element={
-                  <PrivateRoute allowedRoles={['teacher']}>
-                    <TeacherDashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/organizer/dashboard"
-                element={
-                  <PrivateRoute allowedRoles={['organizer']}>
-                    <OrgDashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-            </Route>
-          </Routes>
-=======
           <AppRoutesWithLoader />
->>>>>>> daaf47cbbe7b82a32e589cda4ed92310382d84ad
         </Router>
       </AuthProvider>
     </main>
