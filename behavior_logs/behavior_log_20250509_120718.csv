@@ -1,0 +1,2 @@
+timestamp,name,attention_state,gaze_status,posture_status,emotion,behavior,phone_detected
+2025-05-09 12:07:30,Unknown,DISTRACTED: Blinking,Blinking,Good Posture,,Attentive,False

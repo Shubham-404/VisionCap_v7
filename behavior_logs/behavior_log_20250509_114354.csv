@@ -1,0 +1,18 @@
+timestamp,name,attention_state,gaze_status,posture_status,emotion,behavior,phone_detected
+2025-05-09 11:44:02,Unknown,DISTRACTED: Looking left,Looking left,Good Posture,Unknown,Attentive,False
+2025-05-09 11:44:08,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:44:14,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:44:20,Unknown,DISTRACTED: Phone detected,Blinking,Good Posture,Unknown,Attentive,True
+2025-05-09 11:44:25,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:44:31,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:44:37,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:44:43,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:44:49,Unknown,DISTRACTED: Phone detected,Gaze undetected,Good Posture,Unknown,Attentive,True
+2025-05-09 11:44:55,Unknown,DISTRACTED: Blinking,Blinking,Good Posture,Unknown,Attentive,False
+2025-05-09 11:45:01,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:45:07,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:45:12,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:45:17,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:45:22,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:45:27,Unknown,DISTRACTED: Looking left,Looking left,Good Posture,Unknown,Attentive,False
+2025-05-09 11:45:31,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False

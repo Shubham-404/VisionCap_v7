@@ -3,8 +3,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import axios from 'axios'; // Added for backend request
 
 const TeacherDashboard = () => {
+  const [reportData, setReportData] = useState('');
+  const [showReportModal, setShowReportModal] = useState(false);
+
   const { userProfile } = useAuth();
   const navigate = useNavigate();
   const [activeServices, setActiveServices] = useState([]);
@@ -39,13 +43,63 @@ const TeacherDashboard = () => {
     fetchServices();
   }, [userProfile]);
 
-  const handleStartClass = () => {
+  const handleStartClass = async () => {
     if (!semester || !room) {
       setError('Please enter semester and room number.');
       return;
     }
+
     alert(`Starting class for Semester ${semester}, Room ${room}`);
-    // Trigger AI analysis here, e.g., send to backend for processing
+
+    try {
+      const response = await axios.post('http://localhost:5000/start-analysis');
+      console.log(response.data.message);
+    } catch (err) {
+      console.error('Failed to trigger analysis:', err);
+      setError('Failed to start backend analysis.');
+    }
+  };
+  const handleBehave = async () => {
+    if (!semester || !room) {
+      setError('Please enter semester and room number.');
+      return;
+    }
+
+    alert(`Behaviour Script running in background!`);
+
+    try {
+      const response = await axios.post('http://localhost:5000/get-insights');
+      console.log(response.data.message);
+    } catch (err) {
+      console.error('Failed to trigger behavior:', err);
+      setError('Failed to start backend behavior.');
+    }
+  };
+
+  const handleReport = async () => {
+    try {
+      const response = await axios.post('http://localhost:5000/get-report');
+      console.log(response.data.message);
+      setReportData(response.data.report);
+      setShowReportModal(true); // Show modal
+    } catch (err) {
+      console.error('Failed to trigger report:', err);
+      setError('Failed to get report.');
+    }
+  };
+
+
+  const handleStop = async () => {
+
+    alert(`Class ended for ${semester}, Room ${room}`);
+
+    try {
+      const response = await axios.post('http://localhost:5000/stop-analysis');
+      console.log(response.data.message);
+    } catch (err) {
+      console.error('Failed to terminate:', err);
+      setError('Failed to stop.');
+    }
   };
 
   if (loading) {
@@ -90,12 +144,21 @@ const TeacherDashboard = () => {
               />
             </div>
           </div>
-          <button
-            onClick={handleStartClass}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition duration-300 hover:scale-105"
-          >
-            Start Class
-          </button>
+          <div className='flex gap-3'>
+
+            <button onClick={handleStartClass} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition duration-300 hover:scale-105" >
+              Start Class
+            </button>
+            <button onClick={handleBehave} className="bg-amber-600 text-white font-semibold py-2 px-6 rounded-lg shadow transition duration-300 hover:scale-105" >
+              Behavioural Feedback
+            </button>
+            <button onClick={handleReport} className="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg shadow transition duration-300 hover:scale-105" >
+              Get Report
+            </button>
+            <button onClick={handleStop} className="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg shadow transition duration-300 hover:scale-105" >
+              Stop
+            </button>
+          </div>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-lg">
           <h2 className="text-xl font-semibold mb-4">Available Services</h2>
@@ -104,10 +167,7 @@ const TeacherDashboard = () => {
               {modules
                 .filter((module) => activeServices.includes(module.title))
                 .map((module) => (
-                  <div
-                    key={module.title}
-                    className="p-4 bg-gray-50 rounded-lg shadow hover:shadow-md transition duration-300"
-                  >
+                  <div key={module.title} className="p-4 bg-gray-50 rounded-lg shadow hover:shadow-md transition duration-300" >
                     <h3 className="text-lg font-semibold text-gray-800">{module.title}</h3>
                     <p className="text-sm text-gray-600">{module.description}</p>
                     <button

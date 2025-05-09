@@ -21,7 +21,7 @@ def run_start_analysis():
 def run_insights_analysis():
     print("Triggered /get-insights")
     try:
-        subprocess.Popen([sys.executable, 'test1.py', '-q'], cwd=os.path.dirname(__file__))
+        subprocess.Popen([sys.executable, 'abc.py', '-q'], cwd=os.path.dirname(__file__))
         return jsonify({'message': 'Insights analysis script launched!'})
     except Exception as e:
         print(f"Error running insights: {e}")
@@ -32,7 +32,7 @@ def run_report():
     print("Triggered /get-report")
     try:
         subprocess.Popen(
-            [sys.executable, 'test3.py', r'D:\VisionFB\backend\behavior_logs\behavior_log_20250426_034932.csv'],
+            [sys.executable, 'test3.py', r'D:\VisionFB\backend\behavior_logs\behavior_log_20250509_062848.csv'],
             cwd=os.path.dirname(__file__)
         )
         return jsonify({'message': 'Report script launched!'})

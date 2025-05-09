@@ -1,0 +1,6 @@
+timestamp,name,attention_state,gaze_status,posture_status,emotion,behavior,phone_detected
+2025-05-09 11:48:28,Unknown,DISTRACTED: Looking left,Looking left,Good Posture,Unknown,Attentive,False
+2025-05-09 11:48:34,Unknown,DISTRACTED: Looking left,Looking left,Good Posture,Unknown,Attentive,False
+2025-05-09 11:48:40,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:48:46,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False
+2025-05-09 11:48:49,Unknown,DISTRACTED: Gaze undetected,Gaze undetected,Good Posture,Unknown,Attentive,False

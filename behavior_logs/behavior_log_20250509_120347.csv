@@ -1,0 +1,4 @@
+timestamp,name,attention_state,gaze_status,posture_status,emotion,behavior,phone_detected
+2025-05-09 12:03:58,Aditya,DISTRACTED: Looking left,Looking left,Good Posture,Unknown,Attentive,False
+2025-05-09 12:04:03,Aditya,DISTRACTED: Looking left,Looking left,Good Posture,Unknown,Attentive,False
+2025-05-09 12:04:08,Aditya,DISTRACTED: Looking left,Looking left,Good Posture,Unknown,Attentive,False

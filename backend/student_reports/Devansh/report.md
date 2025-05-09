@@ -1,6 +1,6 @@
 # Behavior Analysis Report for Devansh
 
-**Report Date:** 2025-04-26
+**Report Date:** 2025-05-09
 **Session Duration:** 0.0 minutes
 **Total Observations:** 1
 
@@ -10,15 +10,17 @@
 
 ### Key Findings
 
-- **Focused Time:** 100.0%
+- **Focused Time:** 0.0%
 - **Partially Engaged:** 0.0%
-- **Disengaged:** 0.0%
+- **Disengaged:** 100.0%
 
 ## Detailed Analysis
 
 ### Distraction Analysis
 
-No distractions detected.
+Main sources of distraction:
+- Gaze undetected: 1 instances (100.0%)
+
 
 ### Posture Assessment
 
@@ -40,7 +42,7 @@ Behavior analysis:
 
 ## Recommendations
 
-1. Continue with current level of engagement and attention.
+1. Work on maintaining focus during class. Consider removing distractions like phones.
 
 
 ---

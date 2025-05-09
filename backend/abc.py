@@ -10,38 +10,38 @@ import csv
 # Face detection and recognition
 try:
     import face_recognition
-    print("✅ Face Recognition initialized")
+    print(" Face Recognition initialized")
     FACE_RECOGNITION_AVAILABLE = True
 except ImportError:
-    print("❌ Face Recognition not available")
+    print(" Face Recognition not available")
     FACE_RECOGNITION_AVAILABLE = False
 
 # RetinaFace detection
 try:
     from retinaface import RetinaFace
-    print("✅ RetinaFace initialized")
+    print(" RetinaFace initialized")
     RETINAFACE_AVAILABLE = True
 except ImportError:
-    print("❌ RetinaFace not available")
+    print(" RetinaFace not available")
     RETINAFACE_AVAILABLE = False
 
 # Emotion recognition
 try:
     from deepface import DeepFace
-    print("✅ DeepFace initialized")
+    print(" DeepFace initialized")
     DEEPFACE_AVAILABLE = True
 except ImportError:
-    print("❌ DeepFace not available")
+    print(" DeepFace not available")
     DEEPFACE_AVAILABLE = False
 
 # Gaze tracking
 try:
     from gaze_tracking import GazeTracking
     gaze = GazeTracking()
-    print("✅ GazeTracking initialized")
+    print(" GazeTracking initialized")
     GAZE_AVAILABLE = True
 except ImportError:
-    print("❌ GazeTracking not available")
+    print(" GazeTracking not available")
     GAZE_AVAILABLE = False
     gaze = None
 
@@ -53,10 +53,10 @@ try:
     mp_drawing = mp.solutions.drawing_utils
     pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
     face_mesh = mp_face_mesh.FaceMesh()
-    print("✅ MediaPipe initialized")
+    print(" MediaPipe initialized")
     MEDIAPIPE_AVAILABLE = True
 except ImportError:
-    print("❌ MediaPipe not available")
+    print(" MediaPipe not available")
     MEDIAPIPE_AVAILABLE = False
     pose = None
     face_mesh = None
@@ -67,10 +67,10 @@ except ImportError:
 try:
     from ultralytics import YOLO
     YOLO_MODEL = YOLO("yolov8n.pt")
-    print("✅ YOLO initialized")
+    print(" YOLO initialized")
     YOLO_AVAILABLE = True
 except ImportError:
-    print("❌ YOLO not available, trying alternative")
+    print(" YOLO not available, trying alternative")
     YOLO_AVAILABLE = False
     YOLO_MODEL = None
     
@@ -79,15 +79,15 @@ except ImportError:
         import torch
         TORCH_MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
         TORCH_MODEL.classes = [67]  # 67 is the class ID for cell phones in COCO
-        print("✅ YOLOv5 (torch) initialized")
+        print(" YOLOv5 (torch) initialized")
         TORCH_AVAILABLE = True
     except ImportError:
-        print("❌ YOLOv5 (torch) not available")
+        print(" YOLOv5 (torch) not available")
         TORCH_AVAILABLE = False
         TORCH_MODEL = None
 
 # Constants
-SKIP_FRAMES = 1  # Process every 2nd frame for performance
+SKIP_FRAMES = 4  # Process every 2nd frame for performance
 FRAME_WIDTH = 720
 YAWN_THRESHOLD = 25
 EYE_CLOSED_THRESHOLD = 0.01
@@ -119,7 +119,7 @@ class State:
         self.last_phone_detected = None
         self.attention_state = "Initializing..."
         self.attention_color = (255, 255, 255)
-        self.emotion = "Unknown"
+        self.emotion = ""
         self.gaze_status = "Unknown"
         self.posture_status = "Unknown"
         self.fps = 0
@@ -318,7 +318,7 @@ def analyze_attention_state(faces_data, gaze_status, posture_status, phone_detec
                 return "TALKING", (0, 255, 255)
             
             # Check emotion for signs of disengagement
-            emotion = face.get("emotion", "Unknown")
+            emotion = face.get("emotion", "")
             if emotion in ["sad", "angry", "fear"]:
                 return f"CONCERNED: {emotion}", (0, 165, 255)
     
@@ -344,12 +344,12 @@ def draw_box(img, label, box, color=(0, 255, 0)):
 def log_behavior_data(name="Unknown"):
     """Log behavior data to CSV file"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    emotion = "Unknown"
+    emotion = ""
     behavior = "Unknown"
     
     for face_key in state.faces_data:
         face_data = state.faces_data[face_key]
-        emotion = face_data.get("emotion", "Unknown")
+        emotion = face_data.get("emotion", "")
         behavior = face_data.get("behavior", "Unknown")
         name = face_data.get("name", name)
         break
@@ -423,7 +423,7 @@ def process_frame_thread(frame):
             # Face Detection with RetinaFace (if available)
             if RETINAFACE_AVAILABLE:
                 try:
-                    faces = RetinaFace.detect_faces(frame_copy, threshold=0.95)
+                    faces = RetinaFace.detect_faces(frame_copy)
                     if isinstance(faces, dict):
                         state.last_face_time = time.time()
                         
@@ -446,7 +446,7 @@ def process_frame_thread(frame):
                                 "drowsy": False,
                                 "sleeping": False,
                                 "behavior": "Attentive",
-                                "emotion": "Unknown",
+                                "emotion": "",
                                 "name": name
                             }
                             
@@ -460,7 +460,7 @@ def process_frame_thread(frame):
                                         analysis = DeepFace.analyze(face_img, actions=['emotion'], enforce_detection=False)[0]
                                         face_data["emotion"] = analysis['dominant_emotion']
                                     except Exception as e:
-                                        face_data["emotion"] = "Unknown"
+                                        face_data["emotion"] = ""
                                 
                                 # Yawn Detection
                                 if isinstance(landmarks, dict) and is_mouth_open(landmarks):
@@ -538,7 +538,7 @@ def process_frame_thread(frame):
                                 # Get matching face name
                                 name = "Unknown"
                                 if face_idx < len(face_names):
-                                    name = face_names[idx]
+                                    name = face_names[face_idx]
                                 
                                 # Update behavior counters
                                 if name in state.behavior_counters:
@@ -615,7 +615,7 @@ def main():
     cv2.resizeWindow("Behavior Monitor", FRAME_WIDTH, int(FRAME_WIDTH * 9/16))
     
     # Initialize webcam with fallback options
-    camera_index = 2
+    camera_index = 0
     cap = None
     
     # Try different camera indices if needed
@@ -677,27 +677,26 @@ def main():
 
             # Draw face boxes and information
             for face_key in faces_data:
-                for face_key in faces_data:
-                    face = faces_data[face_key]
-                    box = face.get("box", None)
-                    name = face.get("name", "Unknown")
-                    emotion = face.get("emotion", "Unknown")
-                    behavior = face.get("behavior", "Attentive")
+                face = faces_data[face_key]
+                box = face.get("box", None)
+                name = face.get("name", "Unknown")
+                emotion = face.get("", "")
+                behavior = face.get("behavior", "Attentive")
+                
+                if box:
+                    x1, y1, x2, y2 = box
+                    # Ensure box coordinates are within frame boundaries
+                    x1, y1 = max(0, x1), max(0, y1)
+                    x2, y2 = min(frame.shape[1], x2), min(frame.shape[0], y2)
                     
-                    if box:
-                        x1, y1, x2, y2 = box
-                        # Ensure box coordinates are within frame boundaries
-                        x1, y1 = max(0, x1), max(0, y1)
-                        x2, y2 = min(frame.shape[1], x2), min(frame.shape[0], y2)
-                        
-                        # Draw face box
-                        color = (0, 255, 0) if behavior == "Attentive" else (0, 165, 255)
-                        if face.get("sleeping", False):
-                            color = (0, 0, 255)
-                        draw_box(frame, f"{name} ({behavior})", (x1, y1, x2, y2), color)
-                        
-                        # Draw emotion below box
-                        # draw_text(frame, f"Emotion: {emotion}", (x1, y2 + 20), color)
+                    # Draw face box
+                    color = (0, 255, 0) if behavior == "Attentive" else (0, 165, 255)
+                    if face.get("sleeping", False):
+                        color = (0, 0, 255)
+                    draw_box(frame, f"{name} ({behavior})", (x1, y1, x2, y2), color)
+                    
+                    # Draw emotion below box
+                    draw_text(frame, f" {emotion}", (x1, y2 + 20), color)
 
             # Draw phone box if detected
             if phone_detected and phone_box:
