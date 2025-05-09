@@ -6,22 +6,31 @@ import pickle
 import time
 import csv
 from datetime import datetime
+import random
+from threading import Thread
 
 # Config
-KNOWN_FACES_DIR = "loksabha-img"
-VIDEO_PATH = "videos\\videoyt-lokshab.mp4"
+KNOWN_FACES_DIR = "img3"
+VIDEO_PATH ="videos\\video2.mp4"
 ENCODINGS_FILE = "encodings.pkl"
 ATTENDANCE_FILE = "attendance.csv"
 FRAME_SKIP = 15  # Process every 15th frame (adjust as needed)
 
+# Global variables
 known_face_encodings = []
 known_face_names = []
+attendance = {}
+face_frame_buffer = None  # Buffer to hold current frame for processing
+processed_frame_data = None  # Buffer to hold processed faces data
+is_processing = False  # Flag to indicate if processing is in progress
+stop_signal = False  # Signal to stop worker thread
+faces_detected = 0  # Counter for detected faces
 
 # Load or encode known faces
 if os.path.exists(ENCODINGS_FILE):
     with open(ENCODINGS_FILE, "rb") as f:
         known_face_encodings, known_face_names = pickle.load(f)
-    print(" Loaded known face encodings from cache")
+    print("✅ Loaded known face encodings from cache")
 else:
     print("🔄 Encoding known faces...")
     for filename in os.listdir(KNOWN_FACES_DIR):
@@ -41,7 +50,6 @@ else:
     print(f"✅ Encoding completed and saved to '{ENCODINGS_FILE}'")
 
 # Load face detection model
-import random
 print("Loading face detection models...")
 try:
     modelFile = "res10_300x300_ssd_iter_140000.caffemodel"
@@ -58,8 +66,6 @@ except Exception as e:
 profile_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_profileface.xml')
 
 # Track attendance
-attendance = {}
-
 def mark_attendance(name):
     if not name or name == "Unknown":
         return
@@ -86,6 +92,47 @@ def mark_attendance(name):
             print(f"Marked attendance for: {name}")
             attendance[name] = (dtString, dateString)
 
+# Processing thread - uses EXACTLY the same detection code as the original
+def process_frame_thread():
+    global face_frame_buffer, processed_frame_data, is_processing, stop_signal, faces_detected
+    
+    while not stop_signal:
+        # Wait for a new frame to process
+        if face_frame_buffer is not None and is_processing:
+            try:
+                frame = face_frame_buffer.copy()  # Make a copy to avoid race conditions
+                face_frame_buffer = None  # Clear buffer
+                
+                # EXACT SAME DETECTION CODE AS ORIGINAL
+                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                face_locations = face_recognition.face_locations(rgb_frame)
+                face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+                
+                faces_in_frame = []
+                for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+                    matches = face_recognition.compare_faces(known_face_encodings, face_encoding, 
+                                                          tolerance=0.5)
+                    name = "Unknown"
+                    
+                    if True in matches:
+                        match_index = matches.index(True)
+                        name = known_face_names[match_index]
+                        mark_attendance(name)
+                    
+                    faces_in_frame.append((left, top, right, bottom, name))
+                    faces_detected += 1
+                
+                # Update processed results
+                processed_frame_data = faces_in_frame
+                is_processing = False
+                
+            except Exception as e:
+                print(f"Error in processing thread: {e}")
+                is_processing = False
+        else:
+            # Sleep a bit to reduce CPU usage when idle
+            time.sleep(0.01)
+
 # Start video
 video_capture = cv2.VideoCapture(VIDEO_PATH)
 if not video_capture.isOpened():
@@ -97,31 +144,24 @@ width = int(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 total_frames = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
-start_time = time.time()
-frames_processed = 0
-faces_detected = 0
+# Optimize buffer size if possible
+video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
+
+# Start processing thread
+processing_thread = Thread(target=process_frame_thread)
+processing_thread.daemon = True
+processing_thread.start()
 
 cv2.namedWindow('Face Recognition with Attendance', cv2.WINDOW_NORMAL)
 cv2.resizeWindow('Face Recognition with Attendance', width, height)
 
 print(f"Starting video processing: {width}x{height} at {fps:.2f} FPS")
-
-# Performance optimization: precompute known face encodings comparison model
-print("Preparing face recognition model...")
-
-# For lower-spec machines: Create a cache of previous results
-face_cache = {}
-face_cache_max_frames = 10  # Store faces for up to 10 frames
-last_detected_faces = []
-
-# Define parameters for face detection
-face_detection_parameters = {
-    # Keeping original parameters for accuracy
-    "tolerance": 0.5,  # Face recognition match tolerance
-}
-
 print("Starting face detection and recognition...")
+
+start_time = time.time()
+frames_processed = 0
 frame_counter = 0
+last_detected_faces = []
 
 try:
     while True:
@@ -129,62 +169,21 @@ try:
         if not ret:
             break
             
-        # Only perform detection on some frames to improve speed
-        if frame_counter % FRAME_SKIP == 0:
-            faces_in_frame = []
-            
-            # Use the original code's face detection approach exactly
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            face_locations = face_recognition.face_locations(rgb_frame)
-            face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
-            
-            for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-                matches = face_recognition.compare_faces(known_face_encodings, face_encoding, 
-                                                        tolerance=face_detection_parameters["tolerance"])
-                name = "Unknown"
-                
-                if True in matches:
-                    match_index = matches.index(True)
-                    name = known_face_names[match_index]
-                    mark_attendance(name)
-                
-                faces_in_frame.append((left, top, right, bottom, name))
-                faces_detected += 1
-            
-            # Store detected faces in cache
-            face_cache[frame_counter] = faces_in_frame
-            last_detected_faces = faces_in_frame
+        # Only submit frames for processing at intervals and if not already processing
+        if frame_counter % FRAME_SKIP == 0 and not is_processing and face_frame_buffer is None:
+            face_frame_buffer = frame.copy()
+            is_processing = True
             frames_processed += 1
-            
-            # Clean up old cache entries
-            keys_to_remove = []
-            for key in face_cache:
-                if key < frame_counter - face_cache_max_frames * FRAME_SKIP:
-                    keys_to_remove.append(key)
-            for key in keys_to_remove:
-                del face_cache[key]
         
-        # Display frame with faces
+        # Use the most recent detection results or previous ones if still processing
         display_frame = frame.copy()
-        
-        # Get faces to display - either from this frame or the most recent detected
         faces_to_display = []
-        if frame_counter in face_cache:
-            faces_to_display = face_cache[frame_counter]
-        else:
-            # Find the closest processed frame
-            closest_frame = -1
-            min_distance = float('inf')
-            for fc in face_cache:
-                distance = abs(fc - frame_counter)
-                if distance < min_distance:
-                    min_distance = distance
-                    closest_frame = fc
-            
-            if closest_frame != -1 and min_distance <= FRAME_SKIP * 2:
-                faces_to_display = face_cache[closest_frame]
-            elif last_detected_faces:
-                faces_to_display = last_detected_faces
+        
+        if processed_frame_data is not None:
+            faces_to_display = processed_frame_data
+            last_detected_faces = processed_frame_data  # Save for later use
+        elif last_detected_faces:
+            faces_to_display = last_detected_faces
         
         # Draw faces on frame
         for left, top, right, bottom, name in faces_to_display:
@@ -202,9 +201,12 @@ try:
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         cv2.putText(display_frame, f"Faces: {faces_detected}", (10, 90), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.putText(display_frame, f"Processing: {'Yes' if is_processing else 'No'}", (10, 120), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         
-        progress = f"Frame: {frame_counter}/{total_frames} ({100*frame_counter/max(1,total_frames):.1f}%)"
-        cv2.putText(display_frame, progress, (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        if total_frames > 0:  # Only for video files, not camera
+            progress = f"Frame: {frame_counter}/{total_frames} ({100*frame_counter/max(1,total_frames):.1f}%)"
+            cv2.putText(display_frame, progress, (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         
         # Show the results
         cv2.imshow('Face Recognition with Attendance', display_frame)
@@ -224,6 +226,12 @@ try:
             print(f"Frame skip set to {FRAME_SKIP}")
         elif key == ord('p'):  # Pause/play
             cv2.waitKey(0)  # Wait until any key is pressed
+        elif key == ord('f'):  # Force detection on current frame
+            if not is_processing and face_frame_buffer is None:
+                face_frame_buffer = frame.copy()
+                is_processing = True
+                frames_processed += 1
+                print("Forced processing of current frame")
             
         frame_counter += 1
 
@@ -232,6 +240,12 @@ except Exception as e:
     import traceback
     traceback.print_exc()
 finally:
+    # Signal worker thread to stop
+    stop_signal = True
+    
+    # Wait for thread to finish
+    processing_thread.join(timeout=1.0)
+    
     video_capture.release()
     cv2.destroyAllWindows()
     

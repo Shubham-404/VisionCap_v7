@@ -6,7 +6,7 @@ import argparse
 import numpy as np
 from collections import Counter
 
-def load_log_data(log_file="D:\\real-time-cam-v1\\behavior_logs\\behavior_log_20250412_072936.csv"):
+def load_log_data(log_file="D:\\VisionFB\\backend\\behavior_logs\\behavior_log_20250426_034932.csv"):
     """Load and parse the behavior log CSV file"""
     try:
         df = pd.read_csv(log_file)
